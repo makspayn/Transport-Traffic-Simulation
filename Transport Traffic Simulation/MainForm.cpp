@@ -10,6 +10,7 @@ MainForm::~MainForm()
 	if (components) {
 		delete components;
 	}
+	delete way;
 }
 
 System::Void MainForm::LoadCities(String ^titleCities)
@@ -380,7 +381,8 @@ System::Void MainForm::MainForm_Load(System::Object ^sender, System::EventArgs ^
 	OpenStreetMapOverlay ^osmOvelerlay = gcnew OpenStreetMapOverlay;
 	Map->Overlays->Add(osmOvelerlay);
 	Map->Refresh();
-	loadedway = false;
+	way = gcnew Way(Map, tableWay);
+	way->Draw();
 }
 
 System::Void MainForm::Map_MouseClick(System::Object ^sender, System::Windows::Forms::MouseEventArgs ^e)
@@ -411,9 +413,7 @@ System::Void MainForm::btnDeleteCity_Click(System::Object ^ sender, System::Even
 
 System::Void MainForm::btnLoadWay_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	loadedway = false;
 	LoadWay(cbWays->Text);
-	loadedway = true;
 }
 
 System::Void MainForm::btnSaveWay_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -439,7 +439,7 @@ System::Void MainForm::tbSpeed_Scroll(System::Object ^ sender, System::EventArgs
 
 System::Void MainForm::tableWay_SelectionChanged(System::Object^  sender, System::EventArgs^  e)
 {
-	if (loadedway) {
+	if (tableWay->CurrentRow->Cells[0]->Value) {
 		tbX->Text = tableWay->CurrentRow->Cells[0]->Value->ToString();
 		tbY->Text = tableWay->CurrentRow->Cells[1]->Value->ToString();
 		cbPointType->SelectedIndex = (int)tableWay->CurrentRow->Cells[2]->Value;

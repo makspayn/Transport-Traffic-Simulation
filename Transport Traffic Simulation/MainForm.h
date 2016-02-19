@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Way.h"
+
 using namespace System;
 using namespace System::ComponentModel;
 using namespace System::Collections;
@@ -74,7 +76,7 @@ private:
 	String^ CitiesName;
 	String^ CityName;
 	PointShape ^pointShape;
-	bool loadedway;
+	Way ^way;
 	System::Void LoadCities(String ^);
 	System::Void LoadCity(String ^);
 	System::Void LoadWay(String ^);
