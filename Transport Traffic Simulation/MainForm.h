@@ -29,10 +29,10 @@ private:
 	System::Windows::Forms::Button^  btnDeleteCity;
 	System::Windows::Forms::Button^  btnLoadWay;
 	System::Windows::Forms::DataGridView^  tableWay;
-	System::Windows::Forms::DataGridViewTextBoxColumn^  X;
-	System::Windows::Forms::DataGridViewTextBoxColumn^  Y;
-	System::Windows::Forms::DataGridViewTextBoxColumn^  Тип;
-	System::Windows::Forms::DataGridViewTextBoxColumn^  Название_остановки;
+
+
+
+
 	System::Windows::Forms::Button^  btnTableAdd;
 	System::Windows::Forms::Button^  btnTableInsert;
 	System::Windows::Forms::Button^  btnTableEdit;
@@ -76,7 +76,22 @@ private:
 	String^ CitiesName;
 	String^ CityName;
 	PointShape ^pointShape;
-	Way ^way;
+private: System::Windows::Forms::DataGridViewTextBoxColumn^  X;
+private: System::Windows::Forms::DataGridViewTextBoxColumn^  Y;
+private: System::Windows::Forms::DataGridViewTextBoxColumn^  Тип;
+private: System::Windows::Forms::DataGridViewTextBoxColumn^  Название_остановки;
+private: System::Windows::Forms::DataGridViewTextBoxColumn^  Код;
+
+
+
+
+
+
+
+
+
+
+				 Way ^way;
 	System::Void LoadCities(String ^);
 	System::Void LoadCity(String ^);
 	System::Void LoadWay(String ^);
@@ -111,10 +126,6 @@ private:
 		this->btnLoadWay = (gcnew System::Windows::Forms::Button());
 		this->btnSaveCity = (gcnew System::Windows::Forms::Button());
 		this->tableWay = (gcnew System::Windows::Forms::DataGridView());
-		this->X = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
-		this->Y = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
-		this->Тип = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
-		this->Название_остановки = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 		this->btnTableAdd = (gcnew System::Windows::Forms::Button());
 		this->btnTableInsert = (gcnew System::Windows::Forms::Button());
 		this->btnTableEdit = (gcnew System::Windows::Forms::Button());
@@ -155,6 +166,11 @@ private:
 		this->tbQuantity = (gcnew System::Windows::Forms::NumericUpDown());
 		this->cbTransportType = (gcnew System::Windows::Forms::ComboBox());
 		this->btnTableClear = (gcnew System::Windows::Forms::Button());
+		this->X = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
+		this->Y = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
+		this->Тип = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
+		this->Название_остановки = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
+		this->Код = (gcnew System::Windows::Forms::DataGridViewTextBoxColumn());
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableWay))->BeginInit();
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tbSpeed))->BeginInit();
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tbQuantity))->BeginInit();
@@ -244,9 +260,9 @@ private:
 		this->tableWay->AllowUserToResizeColumns = false;
 		this->tableWay->AllowUserToResizeRows = false;
 		this->tableWay->ColumnHeadersHeightSizeMode = System::Windows::Forms::DataGridViewColumnHeadersHeightSizeMode::AutoSize;
-		this->tableWay->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(4) {
+		this->tableWay->Columns->AddRange(gcnew cli::array< System::Windows::Forms::DataGridViewColumn^  >(5) {
 			this->X, this->Y,
-				this->Тип, this->Название_остановки
+				this->Тип, this->Название_остановки, this->Код
 		});
 		this->tableWay->Location = System::Drawing::Point(683, 1);
 		this->tableWay->MultiSelect = false;
@@ -255,42 +271,6 @@ private:
 		this->tableWay->Size = System::Drawing::Size(323, 173);
 		this->tableWay->TabIndex = 8;
 		this->tableWay->SelectionChanged += gcnew System::EventHandler(this, &MainForm::tableWay_SelectionChanged);
-		// 
-		// X
-		// 
-		this->X->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
-		this->X->HeaderText = L"X";
-		this->X->Name = L"X";
-		this->X->ReadOnly = true;
-		this->X->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
-		this->X->Width = 20;
-		// 
-		// Y
-		// 
-		this->Y->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
-		this->Y->HeaderText = L"Y";
-		this->Y->Name = L"Y";
-		this->Y->ReadOnly = true;
-		this->Y->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
-		this->Y->Width = 20;
-		// 
-		// Тип
-		// 
-		this->Тип->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
-		this->Тип->HeaderText = L"Тип";
-		this->Тип->Name = L"Тип";
-		this->Тип->ReadOnly = true;
-		this->Тип->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
-		this->Тип->Width = 32;
-		// 
-		// Название_остановки
-		// 
-		this->Название_остановки->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
-		this->Название_остановки->HeaderText = L"Название остановки";
-		this->Название_остановки->Name = L"Название_остановки";
-		this->Название_остановки->ReadOnly = true;
-		this->Название_остановки->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
-		this->Название_остановки->Width = 107;
 		// 
 		// btnTableAdd
 		// 
@@ -626,7 +606,6 @@ private:
 		this->cbPointType->Name = L"cbPointType";
 		this->cbPointType->Size = System::Drawing::Size(61, 21);
 		this->cbPointType->TabIndex = 48;
-		this->cbPointType->SelectedIndex = 0;
 		// 
 		// btnDeleteCity
 		// 
@@ -657,7 +636,6 @@ private:
 		this->cbTransportType->Name = L"cbTransportType";
 		this->cbTransportType->Size = System::Drawing::Size(124, 21);
 		this->cbTransportType->TabIndex = 51;
-		this->cbTransportType->SelectedIndex = 0;
 		// 
 		// btnTableClear
 		// 
@@ -668,6 +646,49 @@ private:
 		this->btnTableClear->Text = L"Очистить";
 		this->btnTableClear->UseVisualStyleBackColor = true;
 		this->btnTableClear->Click += gcnew System::EventHandler(this, &MainForm::btnTableClear_Click);
+		// 
+		// X
+		// 
+		this->X->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
+		this->X->HeaderText = L"X";
+		this->X->Name = L"X";
+		this->X->ReadOnly = true;
+		this->X->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
+		this->X->Width = 20;
+		// 
+		// Y
+		// 
+		this->Y->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
+		this->Y->HeaderText = L"Y";
+		this->Y->Name = L"Y";
+		this->Y->ReadOnly = true;
+		this->Y->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
+		this->Y->Width = 20;
+		// 
+		// Тип
+		// 
+		this->Тип->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
+		this->Тип->HeaderText = L"Тип";
+		this->Тип->Name = L"Тип";
+		this->Тип->ReadOnly = true;
+		this->Тип->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
+		this->Тип->Width = 32;
+		// 
+		// Название_остановки
+		// 
+		this->Название_остановки->AutoSizeMode = System::Windows::Forms::DataGridViewAutoSizeColumnMode::AllCells;
+		this->Название_остановки->HeaderText = L"Название остановки";
+		this->Название_остановки->Name = L"Название_остановки";
+		this->Название_остановки->ReadOnly = true;
+		this->Название_остановки->SortMode = System::Windows::Forms::DataGridViewColumnSortMode::NotSortable;
+		this->Название_остановки->Width = 107;
+		// 
+		// Код
+		// 
+		this->Код->HeaderText = L"Код";
+		this->Код->Name = L"Код";
+		this->Код->ReadOnly = true;
+		this->Код->Visible = false;
 		// 
 		// MainForm
 		// 

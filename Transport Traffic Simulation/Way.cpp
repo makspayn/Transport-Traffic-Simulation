@@ -36,6 +36,10 @@ System::Void Way::RunDraw(System::Object ^sender, System::EventArgs ^e)
 			graphWay->DrawLine(gcnew Pen(Brushes::BlueViolet, 4), p1.X, p1.Y, p2.X, p2.Y);
 		}
 	}
+	x1 = Convert::ToInt32(tableWay->CurrentRow->Cells[0]->Value->ToString());
+	y1 = Convert::ToInt32(tableWay->CurrentRow->Cells[1]->Value->ToString());
+	p1 = ExtentHelper::ToScreenCoordinate(Map->CurrentExtent, x1, y1, Map->Width, Map->Height);
+	graphWay->FillEllipse(gcnew SolidBrush(Color::Red), p1.X - 6, p1.Y - 6, 12.0, 12.0);
 }
 
 System::Void Way::RunCalc()

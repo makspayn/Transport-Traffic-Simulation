@@ -125,20 +125,23 @@ System::Void MainForm::LoadWay(String ^titleWay)
 		CityName + "Ways.mdb;" +
 		"Mode=ReadWrite;Persist Security Info=False";
 	qrWay->Open();
-	command->CommandText = "select x, y, type, Название from " + titleWay;
+	command->CommandText = "select x, y, type, Название, Код from " + titleWay;
 	command->Connection = qrWay;
 	System::Data::OleDb::OleDbDataReader^ WayRead = command->ExecuteReader();
 	int i = 0;
+	tableWay->Rows->Clear();
 	while (WayRead->Read()) {
 		tableWay->Rows->Add();
-		tableWay->Rows[i]->Cells[0]->Value = (int)WayRead["x"];
-		tableWay->Rows[i]->Cells[1]->Value = (int)WayRead["y"];
-		tableWay->Rows[i]->Cells[2]->Value = (int)WayRead["type"];
-		tableWay->Rows[i]->Cells[3]->Value = WayRead["Название"]->ToString();
+		tableWay->Rows[i]->Cells[0]->Value = WayRead[0];
+		tableWay->Rows[i]->Cells[1]->Value = WayRead[1];
+		tableWay->Rows[i]->Cells[2]->Value = WayRead[2];
+		tableWay->Rows[i]->Cells[3]->Value = WayRead[3];
+		tableWay->Rows[i]->Cells[4]->Value = WayRead[4];
 		i++;
 	}
 	WayRead->Close();
 	qrWay->Close();
+	tableWay->Sort(tableWay->Columns[4], ListSortDirection::Ascending);
 }
 
 System::Void MainForm::SaveCity(String ^titleCity)
@@ -261,7 +264,7 @@ System::Void MainForm::SaveWay(String ^titleWay)
 		command->ExecuteNonQuery();
 	}
 	command->CommandText =
-		"create table " + titleWay + " (Код integer identity primary key, " +
+		"create table " + titleWay + " (Код counter primary key, " +
 		"x integer, y integer, type integer, Название char (255))";
 	command->ExecuteNonQuery();
 	for (int i = 0; i < tableWay->RowCount; i++) {
@@ -271,7 +274,7 @@ System::Void MainForm::SaveWay(String ^titleWay)
 			tableWay->Rows[i]->Cells[1]->Value->ToString() + "," +
 			tableWay->Rows[i]->Cells[2]->Value->ToString() + ",'" +
 			tableWay->Rows[i]->Cells[3]->Value->ToString() + "')";
-		command->ExecuteNonQuery();
+			command->ExecuteNonQuery();
 	}
 	qrWay->Close();
 	if (exists) {
@@ -378,8 +381,8 @@ System::Void MainForm::MainForm_Load(System::Object ^sender, System::EventArgs ^
 	CityName = "";
 	LoadCities("Города");
 	Map->CurrentExtent = gcnew RectangleShape(-14675838, 17885007, 11819003, -2230722);
-	OpenStreetMapOverlay ^osmOvelerlay = gcnew OpenStreetMapOverlay;
-	Map->Overlays->Add(osmOvelerlay);
+	OpenStreetMapOverlay ^osmOverlay = gcnew OpenStreetMapOverlay;
+	Map->Overlays->Add(osmOverlay);
 	Map->Refresh();
 	way = gcnew Way(Map, tableWay);
 	way->Draw();
