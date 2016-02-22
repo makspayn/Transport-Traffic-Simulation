@@ -96,6 +96,10 @@ System::Void MainForm::LoadWay(String ^titleWay)
 		MessageBox::Show("Некорректное название маршрута!");
 		return;
 	}
+	/*FileStream^ fs = gcnew FileStream("data.bin", FileMode::Open);
+	BinaryReader^ br = gcnew BinaryReader(fs);
+	String ^s = br->ReadString();
+	fs->Close();*/
 	System::Data::OleDb::OleDbConnection ^qrCity = gcnew System::Data::OleDb::OleDbConnection();
 	qrCity->ConnectionString = 
 		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
@@ -267,6 +271,11 @@ System::Void MainForm::SaveWay(String ^titleWay)
 		"create table " + titleWay + " (Код counter primary key, " +
 		"x integer, y integer, type integer, Название char (255))";
 	command->ExecuteNonQuery();
+	/*FileStream^ fs = gcnew FileStream("data.bin", FileMode::Create);
+	BinaryWriter^ w = gcnew BinaryWriter(fs);
+	String ^s = "Ура!";
+	w->Write(s);
+	fs->Close();*/
 	for (int i = 0; i < tableWay->RowCount; i++) {
 		command->CommandText = 
 			"insert into " + titleWay + " (x, y, type, Название) values (" +
@@ -274,7 +283,8 @@ System::Void MainForm::SaveWay(String ^titleWay)
 			tableWay->Rows[i]->Cells[1]->Value->ToString() + "," +
 			tableWay->Rows[i]->Cells[2]->Value->ToString() + ",'" +
 			tableWay->Rows[i]->Cells[3]->Value->ToString() + "')";
-			command->ExecuteNonQuery();
+		
+		command->ExecuteNonQuery();
 	}
 	qrWay->Close();
 	if (exists) {
@@ -515,4 +525,20 @@ System::Void MainForm::btnTableDelete_Click(System::Object ^ sender, System::Eve
 System::Void MainForm::btnTableClear_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	tableWay->Rows->Clear();
+}
+
+System::Void MainForm::btnTest_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	array<CalcWay^>^ calculatedWay = way->GetCalculatedWay(cbTransportType->SelectedIndex);
+	DateTime dt = DateTime::Parse("0:00:00"), time;
+	dt = dt.AddSeconds(calculatedWay->Length - 1);
+	time = dt;
+	int i = 1;
+	while (dt >= timeInterval->Value) {
+		dt = DateTime::Parse(System::Convert::ToString(dt.Subtract(timeInterval->Value)));
+		i++;
+	}
+	MessageBox::Show("Длина пути: " + calculatedWay[calculatedWay->Length - 1]->s.ToString() + " м.\n" +
+		"Время пути: " + time.TimeOfDay.ToString() + "\n" + 
+		"Рекомендуется единиц транспорта: " + i.ToString());
 }

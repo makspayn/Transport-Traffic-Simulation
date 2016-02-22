@@ -13,7 +13,9 @@ using namespace ThinkGeo::MapSuite::DesktopEdition;
 
 public ref struct CalcWay
 {
-
+	int x, y, numPict;
+	double s;
+	String ^nextStop;
 };
 
 public ref class Way
@@ -31,9 +33,12 @@ private:
 	Graphics ^graphWay;
 	int x1, x2, y1, y2;
 	ThinkGeo::MapSuite::Core::ScreenPointF p1, p2;
+	int VMAX, v, a;
 	System::Void RunDraw(System::Object ^sender, System::EventArgs ^e);
+	int Velocity(double, int %, int %, int, int, int);
+	int DefNumPict(int, int, int, int);
 	System::Void RunCalc();
 public:
 	System::Void Draw();
-	array <CalcWay ^> ^GetCalculatedWay();
+	array <CalcWay ^> ^GetCalculatedWay(int);
 };
