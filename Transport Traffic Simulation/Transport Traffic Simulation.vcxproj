@@ -149,14 +149,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainForm.cpp" />
+    <ClCompile Include="Scheduler.cpp" />
     <ClCompile Include="Transport Traffic Simulation.cpp" />
+    <ClCompile Include="Transport.cpp" />
     <ClCompile Include="Way.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="Scheduler.h" />
     <ClInclude Include="Transport Traffic Simulation.h" />
+    <ClInclude Include="Transport.h" />
     <ClInclude Include="Way.h" />
   </ItemGroup>
   <ItemGroup>

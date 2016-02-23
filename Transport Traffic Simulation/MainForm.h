@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Way.h"
+#include "Transport Traffic Simulation.h"
 
 using namespace System;
 using namespace System::ComponentModel;
@@ -21,7 +22,6 @@ protected:
 private:
 	System::ComponentModel::Container ^components;
 	System::Windows::Forms::TextBox^  tbTitleCity;
-	ThinkGeo::MapSuite::DesktopEdition::WinformsMap^  Map;
 	System::Windows::Forms::ComboBox^  cbCities;
 	System::Windows::Forms::ComboBox^  cbWays;
 	System::Windows::Forms::Button^  btnLoadCity;
@@ -57,13 +57,9 @@ private:
 	System::Windows::Forms::Button^  btnStartStop;
 	System::Windows::Forms::Button^  btnPauseReturn;
 	System::Windows::Forms::Label^  label6;
-	System::Windows::Forms::TrackBar^  tbSpeed;
 	System::Windows::Forms::Label^  lblSpeed;
-	System::Windows::Forms::Label^  lblGlobalTime;
 	System::Windows::Forms::Label^  label9;
 	System::Windows::Forms::Label^  label10;
-	System::Windows::Forms::Label^  lblTimeWay;
-	System::Windows::Forms::Label^  lblNextStop;
 	System::Windows::Forms::Label^  label8;
 	System::Windows::Forms::Label^  label11;
 	System::Windows::Forms::TextBox^  tbX;
@@ -71,13 +67,13 @@ private:
 	System::Windows::Forms::Label^  label12;
 	System::Windows::Forms::Label^  label13;
 	System::Windows::Forms::Label^  label14;
+	System::Windows::Forms::Label^  label15;
 	System::Windows::Forms::TextBox^  tbTitleStop;
 	System::Windows::Forms::ComboBox^  cbPointType;
 	System::Windows::Forms::PictureBox ^Pict;
 	String^ CitiesName;
 	String^ CityName;
 	PointShape ^pointShape;
-	Way ^way;
 	System::Void LoadCities(String ^);
 	System::Void LoadCity(String ^);
 	System::Void LoadWay(String ^);
@@ -101,6 +97,18 @@ private:
 	System::Void btnTableDelete_Click(System::Object^  sender, System::EventArgs^  e);
 	System::Void btnTableClear_Click(System::Object^  sender, System::EventArgs^  e);
 	System::Void btnTest_Click(System::Object^  sender, System::EventArgs^  e);
+	System::Void btnStartStop_Click(System::Object^  sender, System::EventArgs^  e);
+	System::Void btnPauseReturn_Click(System::Object^  sender, System::EventArgs^  e);
+	System::Void MainForm_FormClosing(System::Object^  sender, System::Windows::Forms::FormClosingEventArgs^  e);
+public:
+	ThinkGeo::MapSuite::DesktopEdition::WinformsMap ^Map;
+	System::Windows::Forms::TrackBar^  tbSpeed;
+	System::Windows::Forms::Label^  lblDistanceWay;
+	System::Windows::Forms::Label^  lblTimeWay;
+	System::Windows::Forms::Label^  lblNextStop;
+	System::Windows::Forms::Label^  lblGlobalTime;
+	Way ^way;
+	Scheduler ^scheduler;
 
 #pragma region Windows Form Designer generated code
 	void InitializeComponent(void)
@@ -158,6 +166,8 @@ private:
 		this->tbQuantity = (gcnew System::Windows::Forms::NumericUpDown());
 		this->cbTransportType = (gcnew System::Windows::Forms::ComboBox());
 		this->btnTableClear = (gcnew System::Windows::Forms::Button());
+		this->label15 = (gcnew System::Windows::Forms::Label());
+		this->lblDistanceWay = (gcnew System::Windows::Forms::Label());
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableWay))->BeginInit();
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tbSpeed))->BeginInit();
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tbQuantity))->BeginInit();
@@ -460,6 +470,7 @@ private:
 		this->btnStartStop->TabIndex = 27;
 		this->btnStartStop->Text = L"Старт";
 		this->btnStartStop->UseVisualStyleBackColor = true;
+		this->btnStartStop->Click += gcnew System::EventHandler(this, &MainForm::btnStartStop_Click);
 		// 
 		// btnPauseReturn
 		// 
@@ -470,6 +481,7 @@ private:
 		this->btnPauseReturn->TabIndex = 28;
 		this->btnPauseReturn->Text = L"Пауза";
 		this->btnPauseReturn->UseVisualStyleBackColor = true;
+		this->btnPauseReturn->Click += gcnew System::EventHandler(this, &MainForm::btnPauseReturn_Click);
 		// 
 		// label6
 		// 
@@ -512,12 +524,12 @@ private:
 		this->lblGlobalTime->Name = L"lblGlobalTime";
 		this->lblGlobalTime->Size = System::Drawing::Size(84, 26);
 		this->lblGlobalTime->TabIndex = 32;
-		this->lblGlobalTime->Text = L"5:00:00";
+		this->lblGlobalTime->Text = L"00:00:00";
 		// 
 		// label9
 		// 
 		this->label9->AutoSize = true;
-		this->label9->Location = System::Drawing::Point(690, 493);
+		this->label9->Location = System::Drawing::Point(690, 505);
 		this->label9->Name = L"label9";
 		this->label9->Size = System::Drawing::Size(68, 13);
 		this->label9->TabIndex = 33;
@@ -526,7 +538,7 @@ private:
 		// label10
 		// 
 		this->label10->AutoSize = true;
-		this->label10->Location = System::Drawing::Point(690, 516);
+		this->label10->Location = System::Drawing::Point(690, 520);
 		this->label10->Name = L"label10";
 		this->label10->Size = System::Drawing::Size(125, 13);
 		this->label10->TabIndex = 34;
@@ -535,7 +547,7 @@ private:
 		// lblTimeWay
 		// 
 		this->lblTimeWay->AutoSize = true;
-		this->lblTimeWay->Location = System::Drawing::Point(818, 493);
+		this->lblTimeWay->Location = System::Drawing::Point(818, 505);
 		this->lblTimeWay->Name = L"lblTimeWay";
 		this->lblTimeWay->Size = System::Drawing::Size(13, 13);
 		this->lblTimeWay->TabIndex = 35;
@@ -544,7 +556,7 @@ private:
 		// lblNextStop
 		// 
 		this->lblNextStop->AutoSize = true;
-		this->lblNextStop->Location = System::Drawing::Point(818, 515);
+		this->lblNextStop->Location = System::Drawing::Point(818, 521);
 		this->lblNextStop->Name = L"lblNextStop";
 		this->lblNextStop->Size = System::Drawing::Size(13, 13);
 		this->lblNextStop->TabIndex = 36;
@@ -652,7 +664,7 @@ private:
 		// tbQuantity
 		// 
 		this->tbQuantity->Location = System::Drawing::Point(688, 323);
-		this->tbQuantity->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 50, 0, 0, 0 });
+		this->tbQuantity->Maximum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 30, 0, 0, 0 });
 		this->tbQuantity->Minimum = System::Decimal(gcnew cli::array< System::Int32 >(4) { 1, 0, 0, 0 });
 		this->tbQuantity->Name = L"tbQuantity";
 		this->tbQuantity->Size = System::Drawing::Size(76, 20);
@@ -680,11 +692,31 @@ private:
 		this->btnTableClear->UseVisualStyleBackColor = true;
 		this->btnTableClear->Click += gcnew System::EventHandler(this, &MainForm::btnTableClear_Click);
 		// 
+		// label15
+		// 
+		this->label15->AutoSize = true;
+		this->label15->Location = System::Drawing::Point(690, 490);
+		this->label15->Name = L"label15";
+		this->label15->Size = System::Drawing::Size(68, 13);
+		this->label15->TabIndex = 54;
+		this->label15->Text = L"Длина пути:";
+		// 
+		// lblDistanceWay
+		// 
+		this->lblDistanceWay->AutoSize = true;
+		this->lblDistanceWay->Location = System::Drawing::Point(818, 488);
+		this->lblDistanceWay->Name = L"lblDistanceWay";
+		this->lblDistanceWay->Size = System::Drawing::Size(13, 13);
+		this->lblDistanceWay->TabIndex = 55;
+		this->lblDistanceWay->Text = L"--";
+		// 
 		// MainForm
 		// 
 		this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 		this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 		this->ClientSize = System::Drawing::Size(1008, 537);
+		this->Controls->Add(this->lblDistanceWay);
+		this->Controls->Add(this->label15);
 		this->Controls->Add(this->btnTableClear);
 		this->Controls->Add(this->cbTransportType);
 		this->Controls->Add(this->tbQuantity);
@@ -739,6 +771,7 @@ private:
 		this->Name = L"MainForm";
 		this->StartPosition = System::Windows::Forms::FormStartPosition::CenterScreen;
 		this->Text = L"Симуляция движения";
+		this->FormClosing += gcnew System::Windows::Forms::FormClosingEventHandler(this, &MainForm::MainForm_FormClosing);
 		this->Load += gcnew System::EventHandler(this, &MainForm::MainForm_Load);
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tableWay))->EndInit();
 		(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->tbSpeed))->EndInit();

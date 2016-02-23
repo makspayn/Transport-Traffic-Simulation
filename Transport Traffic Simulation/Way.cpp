@@ -4,46 +4,69 @@ Way::Way(ThinkGeo::MapSuite::DesktopEdition::WinformsMap ^map, System::Windows::
 {
 	Map = map;
 	tableWay = table;
+	TimerDraw = gcnew System::Windows::Forms::Timer();
+	TimerDraw->Interval = 10;
+	TimerDraw->Tick += gcnew System::EventHandler(this, &Way::Draw);
+	TimerDraw->Enabled = true;
+	drawThread = gcnew Thread(gcnew ThreadStart(this, &Way::RunDraw));
+	drawThread->Start();
 }
 
 Way::~Way()
 {
+	drawThread->Abort();
+	delete drawThread;
 	if (calcThread != nullptr) {
 		calcThread->Abort();
 		delete calcThread;
 	}
-}
-
-System::Void Way::RunDraw(System::Object ^sender, System::EventArgs ^e)
-{
-	if (!tableWay->Rows->Count) {
-		return;
+	if (calculatedWay != nullptr) {
+		delete calculatedWay;
 	}
 	if (graphWay != nullptr) {
 		delete graphWay;
 	}
-	graphWay = Map->CreateGraphics();
-	for (int i = 0; i < tableWay->Rows->Count; i++) {
-		x1 = Convert::ToInt32(tableWay->Rows[i]->Cells[0]->Value->ToString());
-		y1 = Convert::ToInt32(tableWay->Rows[i]->Cells[1]->Value->ToString());
-		p1 = ExtentHelper::ToScreenCoordinate(Map->CurrentExtent, x1, y1, Map->Width, Map->Height);
-		if ((int)tableWay->Rows[i]->Cells[2]->Value == 2) {
-			graphWay->FillEllipse(gcnew SolidBrush(Color::BlueViolet), p1.X - 6, p1.Y - 6, 12.0, 12.0);
-		}
-		if (i != tableWay->Rows->Count - 1) {
-			x2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[0]->Value->ToString());
-			y2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[1]->Value->ToString());
-			p2 = ExtentHelper::ToScreenCoordinate(Map->CurrentExtent, x2, y2, Map->Width, Map->Height);
-			graphWay->DrawLine(gcnew Pen(Brushes::BlueViolet, 4), p1.X, p1.Y, p2.X, p2.Y);
-		}
-	}
-	x1 = Convert::ToInt32(tableWay->CurrentRow->Cells[0]->Value->ToString());
-	y1 = Convert::ToInt32(tableWay->CurrentRow->Cells[1]->Value->ToString());
-	p1 = ExtentHelper::ToScreenCoordinate(Map->CurrentExtent, x1, y1, Map->Width, Map->Height);
-	graphWay->FillEllipse(gcnew SolidBrush(Color::Red), p1.X - 6, p1.Y - 6, 12.0, 12.0);
+	delete TimerDraw;
 }
 
-int Way::Velocity(double ds, int %x, int %y, int tempx, int tempy, int pt)
+System::Void Way::RunDraw()
+{
+	while (true) {
+		try {
+			if (!tableWay->Rows->Count || (currentExtent == nullptr)) {
+				continue;
+			}
+			if (graphWay != nullptr) {
+				delete graphWay;
+			}
+			graphWay = Map->CreateGraphics();
+			for (int i = 0; i < tableWay->Rows->Count; i++) {
+				x1 = Convert::ToInt32(tableWay->Rows[i]->Cells[0]->Value->ToString());
+				y1 = Convert::ToInt32(tableWay->Rows[i]->Cells[1]->Value->ToString());
+				p1 = ExtentHelper::ToScreenCoordinate(currentExtent, x1, y1, Map->Width, Map->Height);
+				if ((int)tableWay->Rows[i]->Cells[2]->Value == 2) {
+					graphWay->FillEllipse(gcnew SolidBrush(Color::BlueViolet), p1.X - 6, p1.Y - 6, 12.0, 12.0);
+				}
+				if (i != tableWay->Rows->Count - 1) {
+					x2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[0]->Value->ToString());
+					y2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[1]->Value->ToString());
+					p2 = ExtentHelper::ToScreenCoordinate(currentExtent, x2, y2, Map->Width, Map->Height);
+					graphWay->DrawLine(gcnew Pen(Brushes::BlueViolet, 4), p1.X, p1.Y, p2.X, p2.Y);
+				}
+			}
+			x1 = Convert::ToInt32(tableWay->CurrentRow->Cells[0]->Value->ToString());
+			y1 = Convert::ToInt32(tableWay->CurrentRow->Cells[1]->Value->ToString());
+			p1 = ExtentHelper::ToScreenCoordinate(currentExtent, x1, y1, Map->Width, Map->Height);
+			graphWay->FillEllipse(gcnew SolidBrush(Color::Red), p1.X - 6, p1.Y - 6, 12.0, 12.0);
+			Thread::Sleep(1000);
+		}
+		catch (Exception ^e) {
+			
+		}
+	}
+}
+
+int Way::Velocity(double ds, double %x, double %y, double tempx, double tempy, int pt)
 {
 	int dv = v, s = v;
 	int vmax;
@@ -78,10 +101,10 @@ int Way::Velocity(double ds, int %x, int %y, int tempx, int tempy, int pt)
 	return v;
 }
 
-int Way::DefNumPict(int x, int y, int tempx, int tempy)
+int Way::DefNumPict(double x, double y, double tempx, double tempy)
 {
 	int dx = tempx - x;
-	int dy = tempy - y;
+	int dy = y - tempy;
 	int sign = 1;
 	if (dx) {
 		sign = System::Math::Sign(dx);
@@ -119,12 +142,12 @@ int Way::DefNumPict(int x, int y, int tempx, int tempy)
 
 System::Void Way::RunCalc()
 {
-	int tempx = Convert::ToInt32(tableWay->Rows[1]->Cells[0]->Value);
-	int tempy = Convert::ToInt32(tableWay->Rows[1]->Cells[1]->Value);
+	double tempx = Convert::ToInt32(tableWay->Rows[1]->Cells[0]->Value);
+	double tempy = Convert::ToInt32(tableWay->Rows[1]->Cells[1]->Value);
 	int pointtype = Convert::ToInt32(tableWay->Rows[1]->Cells[2]->Value);
+	bool flag = true;
 	int i = 2;
 	int cycle = 0;
-	bool flag = true;
 	double l = 0.0;
 	double ds = 0.0;
 	int k = 0;
@@ -151,8 +174,8 @@ System::Void Way::RunCalc()
 			tempx, tempy, pointtype);
 		if (ds > v) {
 			l = (double)v / (ds - (double)v);
-			double tx = ((((double)calculatedWay[calculatedWay->Length - 1]->x + l * (double)tempx)) / (1.0 + l));
-			double ty = ((((double)calculatedWay[calculatedWay->Length - 1]->y + l * (double)tempy)) / (1.0 + l));
+			double tx = (((calculatedWay[calculatedWay->Length - 1]->x + l * tempx)) / (1.0 + l));
+			double ty = (((calculatedWay[calculatedWay->Length - 1]->y + l * tempy)) / (1.0 + l));
 			double tds = System::Math::Sqrt(System::Math::Pow((calculatedWay[calculatedWay->Length - 1]->x - tx), 2)
 				+ System::Math::Pow((calculatedWay[calculatedWay->Length - 1]->y - ty), 2));
 			if (ds > tds) {
@@ -210,15 +233,12 @@ System::Void Way::RunCalc()
 	}
 }
 
-System::Void Way::Draw()
+System::Void Way::Draw(System::Object ^sender, System::EventArgs ^e)
 {
-	System::Windows::Forms::Timer ^TimerDraw = gcnew System::Windows::Forms::Timer();
-	TimerDraw->Interval = 1000;
-	TimerDraw->Tick += gcnew System::EventHandler(this, &Way::RunDraw);
-	TimerDraw->Enabled = true;
+	currentExtent = Map->CurrentExtent;
 }
 
-array<CalcWay^>^ Way::GetCalculatedWay(int t)
+array<CalcWay ^> ^Way::GetCalculatedWay(int t)
 {
 	v = 0;
 	switch (t) {
@@ -226,8 +246,12 @@ array<CalcWay^>^ Way::GetCalculatedWay(int t)
 		case 1: VMAX = 32; a = 1; break;
 		case 2: VMAX = 3; a = 1; break;
 	}
+	if (calculatedWay != nullptr) {
+		delete calculatedWay;
+	}
 	calcThread = gcnew Thread(gcnew ThreadStart(this, &Way::RunCalc));
 	calcThread->Start();
 	calcThread->Join();
+	delete calcThread;
 	return calculatedWay;
 }

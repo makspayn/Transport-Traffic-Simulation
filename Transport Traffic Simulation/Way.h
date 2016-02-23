@@ -13,7 +13,8 @@ using namespace ThinkGeo::MapSuite::DesktopEdition;
 
 public ref struct CalcWay
 {
-	int x, y, numPict;
+	double x, y;
+	int numPict;
 	double s;
 	String ^nextStop;
 };
@@ -27,18 +28,20 @@ protected:
 private:
 	ThinkGeo::MapSuite::DesktopEdition::WinformsMap ^Map;
 	System::Windows::Forms::DataGridView ^tableWay;
+	RectangleShape ^currentExtent;
 	array <CalcWay ^> ^calculatedWay;
+	System::Windows::Forms::Timer ^TimerDraw;
 	Thread ^calcThread;
 	Thread ^drawThread;
 	Graphics ^graphWay;
 	int x1, x2, y1, y2;
 	ThinkGeo::MapSuite::Core::ScreenPointF p1, p2;
 	int VMAX, v, a;
-	System::Void RunDraw(System::Object ^sender, System::EventArgs ^e);
-	int Velocity(double, int %, int %, int, int, int);
-	int DefNumPict(int, int, int, int);
+	int Velocity(double, double %, double %, double, double, int);
+	int DefNumPict(double, double, double, double);
+	System::Void RunDraw();
 	System::Void RunCalc();
+	System::Void Draw(System::Object ^sender, System::EventArgs ^e);
 public:
-	System::Void Draw();
 	array <CalcWay ^> ^GetCalculatedWay(int);
 };

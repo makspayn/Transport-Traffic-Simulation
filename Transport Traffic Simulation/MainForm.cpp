@@ -146,6 +146,10 @@ System::Void MainForm::LoadWay(String ^titleWay)
 	WayRead->Close();
 	qrWay->Close();
 	tableWay->Sort(tableWay->Columns[4], ListSortDirection::Ascending);
+	if (way != nullptr) {
+		delete way;
+	}
+	way = gcnew Way(Map, tableWay);
 }
 
 System::Void MainForm::SaveCity(String ^titleCity)
@@ -394,8 +398,6 @@ System::Void MainForm::MainForm_Load(System::Object ^sender, System::EventArgs ^
 	OpenStreetMapOverlay ^osmOverlay = gcnew OpenStreetMapOverlay;
 	Map->Overlays->Add(osmOverlay);
 	Map->Refresh();
-	way = gcnew Way(Map, tableWay);
-	way->Draw();
 }
 
 System::Void MainForm::Map_MouseClick(System::Object ^sender, System::Windows::Forms::MouseEventArgs ^e)
@@ -403,6 +405,9 @@ System::Void MainForm::Map_MouseClick(System::Object ^sender, System::Windows::F
 	pointShape = ExtentHelper::ToWorldCoordinate(Map->CurrentExtent, e->X, e->Y, Map->Width, Map->Height);
 	tbX->Text = int(pointShape->X).ToString();
 	tbY->Text = int(pointShape->Y).ToString();
+	if (scheduler != nullptr) {
+		scheduler->DeselectInfo();
+	}
 }
 
 System::Void MainForm::btnLoadCity_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -529,7 +534,7 @@ System::Void MainForm::btnTableClear_Click(System::Object ^ sender, System::Even
 
 System::Void MainForm::btnTest_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
-	array<CalcWay^>^ calculatedWay = way->GetCalculatedWay(cbTransportType->SelectedIndex);
+	array<CalcWay ^> ^calculatedWay = way->GetCalculatedWay(cbTransportType->SelectedIndex);
 	DateTime dt = DateTime::Parse("0:00:00"), time;
 	dt = dt.AddSeconds(calculatedWay->Length - 1);
 	time = dt;
@@ -540,5 +545,43 @@ System::Void MainForm::btnTest_Click(System::Object ^ sender, System::EventArgs 
 	}
 	MessageBox::Show("Длина пути: " + calculatedWay[calculatedWay->Length - 1]->s.ToString() + " м.\n" +
 		"Время пути: " + time.TimeOfDay.ToString() + "\n" + 
-		"Рекомендуется единиц транспорта: " + i.ToString());
+		"Рекомендуется единиц транспорта: " + i.ToString() + "\n");
+}
+
+System::Void MainForm::btnStartStop_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (btnStartStop->Text == "Старт") {
+		btnStartStop->Text = "Стоп";
+		btnPauseReturn->Enabled = true;
+		scheduler = gcnew Scheduler(this, tbTitleWay->Text, timeStart->Value,
+			timeEnd->Value, timeInterval->Value, (int)tbQuantity->Value, cbTransportType->SelectedIndex);
+		scheduler->Start();
+	}
+	else {
+		btnStartStop->Text = "Старт";
+		btnPauseReturn->Text = "Пауза";
+		btnPauseReturn->Enabled = false;
+		scheduler->DeselectInfo();
+		scheduler->Stop();
+		delete scheduler;
+	}
+}
+
+System::Void MainForm::btnPauseReturn_Click(System::Object ^ sender, System::EventArgs ^ e)
+{
+	if (btnPauseReturn->Text == "Пауза") {
+		btnPauseReturn->Text = "Продолжить";
+		scheduler->Pause();
+	}
+	else {
+		btnPauseReturn->Text = "Пауза";
+		scheduler->Return();
+	}
+}
+
+System::Void MainForm::MainForm_FormClosing(System::Object ^ sender, System::Windows::Forms::FormClosingEventArgs ^ e)
+{
+	if (btnStartStop->Text == "Стоп") {
+		btnStartStop->PerformClick();
+	}
 }
