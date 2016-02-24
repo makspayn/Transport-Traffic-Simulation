@@ -1,5 +1,23 @@
 #include "MainForm.h"
 
+public ref struct Cities
+{
+	String ^titleCity;
+	int x1, y1, x2, y2;
+};
+
+public ref struct City
+{
+	String ^titleWay, ^timeStart, ^timeEnd, ^timeInterval, ^transportType;
+	int quantity;
+};
+
+public ref struct TWay
+{
+	int x, y, type;
+	String ^titleStop;
+};
+
 MainForm::MainForm(void)
 {
 	InitializeComponent();
@@ -19,22 +37,24 @@ System::Void MainForm::LoadCities(String ^titleCities)
 		MessageBox::Show("Некорректное название базы данных городов!");
 		return;
 	}
-	System::Data::OleDb::OleDbConnection ^qrCities = gcnew System::Data::OleDb::OleDbConnection();
-	qrCities->ConnectionString =
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		titleCities + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCities->Open();
-	System::Data::OleDb::OleDbCommand^ command = gcnew System::Data::OleDb::OleDbCommand();
-	command->CommandText = "select Город from Города";
-	command->Connection = qrCities;
-	System::Data::OleDb::OleDbDataReader^ CitiesRead = command->ExecuteReader();
-	cbCities->Items->Clear();
-	while (CitiesRead->Read()) {
-		cbCities->Items->Add(CitiesRead["Город"]);
+	FileStream ^fileCities = gcnew FileStream("Resources\\" + titleCities + ".tts", FileMode::Open);
+	array<Cities ^> ^arrCities = gcnew array<Cities ^>(0);
+	BinaryReader ^readerCities = gcnew BinaryReader(fileCities);
+	for (int i = 0; readerCities->BaseStream->Position < readerCities->BaseStream->Length; i++) {
+		arrCities->Resize(arrCities, arrCities->Length + 1);
+		arrCities[i] = gcnew Cities();
+		arrCities[i]->titleCity = readerCities->ReadString();
+		arrCities[i]->x1 = readerCities->ReadInt32();
+		arrCities[i]->y1 = readerCities->ReadInt32();
+		arrCities[i]->x2 = readerCities->ReadInt32();
+		arrCities[i]->y2 = readerCities->ReadInt32();
 	}
-	CitiesRead->Close();
-	qrCities->Close();
+	readerCities->Close();
+	fileCities->Close();
+	cbCities->Items->Clear();
+	for (int i = 0; i < arrCities->Length; i++) {
+		cbCities->Items->Add(arrCities[i]->titleCity);
+	}
 	if (cbCities->Items->Count) {
 		cbCities->SelectedIndex = 0;
 	}
@@ -47,44 +67,47 @@ System::Void MainForm::LoadCity(String ^titleCity)
 		MessageBox::Show("Некорректное название города!");
 		return;
 	}
-	System::Data::OleDb::OleDbConnection ^qrCities = gcnew System::Data::OleDb::OleDbConnection();
-	qrCities->ConnectionString = 
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CitiesName + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCities->Open();
-	System::Data::OleDb::OleDbCommand^ command = gcnew System::Data::OleDb::OleDbCommand();
-	command->CommandText = "select Город, x1, y1, x2, y2 from Города";
-	command->Connection = qrCities;
-	System::Data::OleDb::OleDbDataReader^ CitiesRead = command->ExecuteReader();
-	while (CitiesRead->Read()) {
-		if ((String ^)CitiesRead["Город"] == titleCity) {
-			Map->CurrentExtent->UpperLeftPoint->X = (int)CitiesRead["x1"];
-			Map->CurrentExtent->UpperLeftPoint->Y = (int)CitiesRead["y1"];
-			Map->CurrentExtent->LowerRightPoint->X = (int)CitiesRead["x2"];
-			Map->CurrentExtent->LowerRightPoint->Y = (int)CitiesRead["y2"];
-			break;
+	FileStream ^fileCities = gcnew FileStream("Resources\\" + CitiesName + ".tts", FileMode::Open);
+	array<Cities ^> ^arrCities = gcnew array<Cities ^>(0);
+	BinaryReader ^readerCities = gcnew BinaryReader(fileCities);
+	for (int i = 0; readerCities->BaseStream->Position < readerCities->BaseStream->Length; i++) {
+		arrCities->Resize(arrCities, arrCities->Length + 1);
+		arrCities[i] = gcnew Cities();
+		arrCities[i]->titleCity = readerCities->ReadString();
+		arrCities[i]->x1 = readerCities->ReadInt32();
+		arrCities[i]->y1 = readerCities->ReadInt32();
+		arrCities[i]->x2 = readerCities->ReadInt32();
+		arrCities[i]->y2 = readerCities->ReadInt32();
+		if (arrCities[i]->titleCity == titleCity) {
+			Map->CurrentExtent->UpperLeftPoint->X = arrCities[i]->x1;
+			Map->CurrentExtent->UpperLeftPoint->Y = arrCities[i]->y1;
+			Map->CurrentExtent->LowerRightPoint->X = arrCities[i]->x2;
+			Map->CurrentExtent->LowerRightPoint->Y = arrCities[i]->y2;
 		}
 	}
-	CitiesRead->Close();
-	qrCities->Close();
+	readerCities->Close();
+	fileCities->Close();
 	Map->Refresh();
 	CityName = titleCity;
-	System::Data::OleDb::OleDbConnection ^qrCity = gcnew System::Data::OleDb::OleDbConnection();
-	qrCity->ConnectionString = 
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		titleCity + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCity->Open();
-	command->CommandText = "select Маршрут, Время_старт, Время_конец, Интервал, Количество from Def";
-	command->Connection = qrCity;
-	System::Data::OleDb::OleDbDataReader^ CityRead = command->ExecuteReader();
-	cbWays->Items->Clear();
-	while (CityRead->Read()) {
-		cbWays->Items->Add(CityRead["Маршрут"]);
+	FileStream ^fileCity = gcnew FileStream("Resources\\" + CitiesName + "\\" + titleCity + ".tts", FileMode::Open);
+	array<City ^> ^arrCity = gcnew array<City ^>(0);
+	BinaryReader ^readerCity = gcnew BinaryReader(fileCity);
+	for (int i = 0; readerCity->BaseStream->Position < readerCity->BaseStream->Length; i++) {
+		arrCity->Resize(arrCity, arrCity->Length + 1);
+		arrCity[i] = gcnew City();
+		arrCity[i]->titleWay = readerCity->ReadString();
+		arrCity[i]->timeStart = readerCity->ReadString();
+		arrCity[i]->timeEnd = readerCity->ReadString();
+		arrCity[i]->timeInterval = readerCity->ReadString();
+		arrCity[i]->quantity = readerCity->ReadInt32();
+		arrCity[i]->transportType = readerCity->ReadString();
 	}
-	CityRead->Close();
-	qrCity->Close();
+	readerCity->Close();
+	fileCity->Close();
+	cbWays->Items->Clear();
+	for (int i = 0; i < arrCity->Length; i++) {
+		cbWays->Items->Add(arrCity[i]->titleWay);
+	}
 	if (cbWays->Items->Count) {
 		cbWays->SelectedIndex = 0;
 	}
@@ -96,56 +119,42 @@ System::Void MainForm::LoadWay(String ^titleWay)
 		MessageBox::Show("Некорректное название маршрута!");
 		return;
 	}
-	/*FileStream^ fs = gcnew FileStream("data.bin", FileMode::Open);
-	BinaryReader^ br = gcnew BinaryReader(fs);
-	String ^s = br->ReadString();
-	fs->Close();*/
-	System::Data::OleDb::OleDbConnection ^qrCity = gcnew System::Data::OleDb::OleDbConnection();
-	qrCity->ConnectionString = 
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CityName + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCity->Open();
-	System::Data::OleDb::OleDbCommand^ command = gcnew System::Data::OleDb::OleDbCommand();
-	command->CommandText = "select Маршрут, Время_старт, Время_конец, Интервал, Количество, Тип from Def";
-	command->Connection = qrCity;
-	System::Data::OleDb::OleDbDataReader^ CityRead = command->ExecuteReader();
-	while (CityRead->Read()) {
-		if ((String ^)CityRead["Маршрут"] == titleWay) {
-			tbTitleWay->Text = (String ^)CityRead["Маршрут"];
-			timeStart->Value = Convert::ToDateTime(CityRead["Время_старт"]->ToString());
-			timeEnd->Value = Convert::ToDateTime(CityRead["Время_конец"]->ToString());
-			timeInterval->Value = Convert::ToDateTime(CityRead["Интервал"]->ToString());
-			tbQuantity->Text = CityRead["Количество"]->ToString();
-			cbTransportType->Text = (String ^)CityRead["Тип"];
-			break;
+	array<City ^> ^arrCity = gcnew array<City ^>(0);
+	FileStream ^fileCity = gcnew FileStream("Resources\\" + CitiesName + "\\" + CityName + ".tts", FileMode::Open);
+	BinaryReader ^readerCity = gcnew BinaryReader(fileCity);
+	for (int i = 0; readerCity->BaseStream->Position < readerCity->BaseStream->Length; i++) {
+		arrCity->Resize(arrCity, arrCity->Length + 1);
+		arrCity[i] = gcnew City();
+		arrCity[i]->titleWay = readerCity->ReadString();
+		arrCity[i]->timeStart = readerCity->ReadString();
+		arrCity[i]->timeEnd = readerCity->ReadString();
+		arrCity[i]->timeInterval = readerCity->ReadString();
+		arrCity[i]->quantity = readerCity->ReadInt32();
+		arrCity[i]->transportType = readerCity->ReadString();
+		if (arrCity[i]->titleWay == titleWay) {
+			tbTitleWay->Text = arrCity[i]->titleWay;
+			timeStart->Value = Convert::ToDateTime(arrCity[i]->timeStart);
+			timeEnd->Value = Convert::ToDateTime(arrCity[i]->timeEnd);
+			timeInterval->Value = Convert::ToDateTime(arrCity[i]->timeInterval);
+			tbQuantity->Text = arrCity[i]->quantity.ToString();
+			cbTransportType->Text = arrCity[i]->transportType;
 		}
 	}
-	CityRead->Close();
-	qrCity->Close();
-	System::Data::OleDb::OleDbConnection ^qrWay = gcnew System::Data::OleDb::OleDbConnection();
-	qrWay->ConnectionString = 
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CityName + "Ways.mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrWay->Open();
-	command->CommandText = "select x, y, type, Название, Код from " + titleWay;
-	command->Connection = qrWay;
-	System::Data::OleDb::OleDbDataReader^ WayRead = command->ExecuteReader();
-	int i = 0;
+	readerCity->Close();
+	fileCity->Close();
+	array<TWay ^> ^arrWay = gcnew array<TWay ^>(0);
+	FileStream ^fileWay = gcnew FileStream("Resources\\" + CitiesName + "\\" + CityName + "\\" + titleWay + ".tts", FileMode::Open);
+	BinaryReader ^readerWay = gcnew BinaryReader(fileWay);
 	tableWay->Rows->Clear();
-	while (WayRead->Read()) {
+	for (int i = 0; readerWay->BaseStream->Position < readerWay->BaseStream->Length; i++) {
 		tableWay->Rows->Add();
-		tableWay->Rows[i]->Cells[0]->Value = WayRead[0];
-		tableWay->Rows[i]->Cells[1]->Value = WayRead[1];
-		tableWay->Rows[i]->Cells[2]->Value = WayRead[2];
-		tableWay->Rows[i]->Cells[3]->Value = WayRead[3];
-		tableWay->Rows[i]->Cells[4]->Value = WayRead[4];
-		i++;
+		tableWay->Rows[i]->Cells[0]->Value = readerWay->ReadInt32();
+		tableWay->Rows[i]->Cells[1]->Value = readerWay->ReadInt32();
+		tableWay->Rows[i]->Cells[2]->Value = readerWay->ReadInt32();
+		tableWay->Rows[i]->Cells[3]->Value = readerWay->ReadString();
 	}
-	WayRead->Close();
-	qrWay->Close();
-	tableWay->Sort(tableWay->Columns[4], ListSortDirection::Ascending);
+	readerWay->Close();
+	fileWay->Close();
 	if (way != nullptr) {
 		delete way;
 	}
@@ -158,52 +167,58 @@ System::Void MainForm::SaveCity(String ^titleCity)
 		MessageBox::Show("Некорректное название города!");
 		return;
 	}
-	System::Data::OleDb::OleDbConnection ^qrCities = gcnew System::Data::OleDb::OleDbConnection();
-	qrCities->ConnectionString = 
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CitiesName + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCities->Open();
-	System::Data::OleDb::OleDbCommand^ command = gcnew System::Data::OleDb::OleDbCommand();
-	command->CommandText = "select Город from Города";
-	command->Connection = qrCities;
-	System::Data::OleDb::OleDbDataReader^ CityRead = command->ExecuteReader();
-	bool exists = false;
-	while (CityRead->Read()) {
-		if ((String ^)CityRead["Город"] == titleCity) {
-			exists = true;
-			break;
+	array<Cities ^> ^arrCities = gcnew array<Cities ^>(0);
+	Cities ^cities = gcnew Cities();
+	cities->titleCity = titleCity;
+	cities->x1 = (int)Map->CurrentExtent->UpperLeftPoint->X;
+	cities->y1 = (int)Map->CurrentExtent->UpperLeftPoint->Y;
+	cities->x2 = (int)Map->CurrentExtent->LowerRightPoint->X;
+	cities->y2 = (int)Map->CurrentExtent->LowerRightPoint->Y;
+	FileStream ^fileCities = gcnew FileStream("Resources\\" + CitiesName + ".tts", FileMode::Open);
+	BinaryReader ^readerCities = gcnew BinaryReader(fileCities);
+	for (int i = 0; readerCities->BaseStream->Position < readerCities->BaseStream->Length; i++) {
+		arrCities->Resize(arrCities, arrCities->Length + 1);
+		arrCities[i] = gcnew Cities();
+		arrCities[i]->titleCity = readerCities->ReadString();
+		arrCities[i]->x1 = readerCities->ReadInt32();
+		arrCities[i]->y1 = readerCities->ReadInt32();
+		arrCities[i]->x2 = readerCities->ReadInt32();
+		arrCities[i]->y2 = readerCities->ReadInt32();
+	}
+	readerCities->Close();
+	bool exists = File::Exists("Resources\\" + CitiesName + "\\" + titleCity + ".tts");
+	if (exists) {
+		for (int i = 0; i < arrCities->Length; i++) {
+			if (arrCities[i]->titleCity == titleCity) {
+				arrCities[i]->x1 = cities->x1;
+				arrCities[i]->y1 = cities->x2;
+				arrCities[i]->x2 = cities->y1;
+				arrCities[i]->y2 = cities->y2;
+			}
 		}
-	}
-	CityRead->Close();
-	if (exists) {
-		command->CommandText =
-			"update Города set x1=" + int(Map->CurrentExtent->UpperLeftPoint->X).ToString() +
-			", y1=" + int(Map->CurrentExtent->UpperLeftPoint->Y).ToString() +
-			", x2=" + int(Map->CurrentExtent->LowerRightPoint->X).ToString() +
-			", y2=" + int(Map->CurrentExtent->LowerRightPoint->Y).ToString() +
-			" where Город='" + titleCity + "'";
-	}
-	else {
-		command->CommandText = 
-			"insert into Города (Город, x1, y1, x2, y2) values ('" +
-			titleCity + "'," +
-			int(Map->CurrentExtent->UpperLeftPoint->X).ToString() + "," +
-			int(Map->CurrentExtent->UpperLeftPoint->Y).ToString() + "," +
-			int(Map->CurrentExtent->LowerRightPoint->X).ToString() + "," +
-			int(Map->CurrentExtent->LowerRightPoint->Y).ToString() + ")";
-		File::Copy("Resources\\Temp.mdb", "Resources\\" + titleCity + ".mdb");
-		File::Copy("Resources\\TempWays.mdb", "Resources\\" + titleCity + "Ways.mdb");
-	}
-	command->ExecuteNonQuery();
-	qrCities->Close();
-	LoadCities(CitiesName);
-	if (exists) {
 		MessageBox::Show("Город " + titleCity + " был обновлен!");
 	}
 	else {
+		arrCities->Resize(arrCities, arrCities->Length + 1);
+		arrCities[arrCities->Length - 1] = cities;
+		Directory::CreateDirectory("Resources\\" + CitiesName + "\\" + titleCity + "\\");
+		FileStream ^fileCity = gcnew FileStream("Resources\\" + CitiesName + "\\" + titleCity + ".tts", FileMode::Create);
+		fileCity->Close();
 		MessageBox::Show("Город " + titleCity + " был создан!");
 	}
+	fileCities->Close();
+	fileCities = File::Open("Resources\\" + CitiesName + ".tts", FileMode::Create);
+	BinaryWriter ^writerCities = gcnew BinaryWriter(fileCities);
+	for (int i = 0; i < arrCities->Length; i++) {
+		writerCities->Write(arrCities[i]->titleCity);
+		writerCities->Write(arrCities[i]->x1);
+		writerCities->Write(arrCities[i]->y1);
+		writerCities->Write(arrCities[i]->x2);
+		writerCities->Write(arrCities[i]->y2);
+	}
+	writerCities->Close();
+	fileCities->Close();
+	LoadCities(CitiesName);
 }
 
 System::Void MainForm::SaveWay(String ^titleWay)
@@ -216,87 +231,83 @@ System::Void MainForm::SaveWay(String ^titleWay)
 		MessageBox::Show("Некорректное название маршрута!");
 		return;
 	}
-	if (DateTime::Parse(timeInterval->Text) > DateTime::Parse("00:59:59")) {
-		MessageBox::Show("Некорректное значение интервала движения!");
-		return;
-	}
 	if (DateTime::Parse(timeEnd->Text) <= DateTime::Parse(timeStart->Text)) {
 		MessageBox::Show("Некорректное значение времени конца движения!");
 		return;
 	}
-	System::Data::OleDb::OleDbConnection ^qrCity = gcnew System::Data::OleDb::OleDbConnection();
-	qrCity->ConnectionString = 
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CityName + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCity->Open();
-	System::Data::OleDb::OleDbCommand^ command = gcnew System::Data::OleDb::OleDbCommand();
-	command->CommandText = "select Маршрут from Def";
-	command->Connection = qrCity;
-	System::Data::OleDb::OleDbDataReader^ CityRead = command->ExecuteReader();
-	bool exists = false;
-	while (CityRead->Read()) {
-		if ((String ^)CityRead["Маршрут"] == titleWay) {
-			exists = true;
-			break;
+	array<City ^> ^arrCity = gcnew array<City ^>(0);
+	array<TWay ^> ^arrWay = gcnew array<TWay ^>(0);
+	City ^city = gcnew City();
+	city->titleWay = titleWay;
+	city->timeStart = timeStart->Text;
+	city->timeEnd = timeEnd->Text;
+	city->timeInterval = timeInterval->Text;
+	city->quantity = Convert::ToInt32(tbQuantity->Text);
+	city->transportType = cbTransportType->Text;
+	for (int i = 0; i < tableWay->Rows->Count; i++) {
+		arrWay->Resize(arrWay, arrWay->Length + 1);
+		arrWay[i] = gcnew TWay();
+		arrWay[i]->x = Convert::ToInt32(tableWay->Rows[i]->Cells[0]->Value);
+		arrWay[i]->y = Convert::ToInt32(tableWay->Rows[i]->Cells[1]->Value);
+		arrWay[i]->type = Convert::ToInt32(tableWay->Rows[i]->Cells[2]->Value);
+		arrWay[i]->titleStop = tableWay->Rows[i]->Cells[3]->Value->ToString();
+	}
+	FileStream ^fileCity = gcnew FileStream("Resources\\" + CitiesName + "\\" + CityName + ".tts", FileMode::Open);
+	BinaryReader ^readerCity = gcnew BinaryReader(fileCity);
+	for (int i = 0; readerCity->BaseStream->Position < readerCity->BaseStream->Length; i++) {
+		arrCity->Resize(arrCity, arrCity->Length + 1);
+		arrCity[i] = gcnew City();
+		arrCity[i]->titleWay = readerCity->ReadString();
+		arrCity[i]->timeStart = readerCity->ReadString();
+		arrCity[i]->timeEnd = readerCity->ReadString();
+		arrCity[i]->timeInterval = readerCity->ReadString();
+		arrCity[i]->quantity = readerCity->ReadInt32();
+		arrCity[i]->transportType = readerCity->ReadString();
+	}
+	readerCity->Close();
+	bool exists = File::Exists("Resources\\" + CitiesName + "\\" + CityName + "\\" + titleWay + ".tts");
+	if (exists) {
+		for (int i = 0; i < arrCity->Length; i++) {
+			if (arrCity[i]->titleWay == titleWay) {
+				arrCity[i]->titleWay = city->titleWay;
+				arrCity[i]->timeStart = city->timeStart;
+				arrCity[i]->timeEnd = city->timeEnd;
+				arrCity[i]->timeInterval = city->timeInterval;
+				arrCity[i]->quantity = city->quantity;
+				arrCity[i]->transportType = city->transportType;
+			}
 		}
-	}
-	CityRead->Close();
-	if (exists) {
-		command->CommandText = 
-			"update Def set Время_старт='" + timeStart->Text +
-			"', Время_конец='" + timeEnd->Text +
-			"', Интервал='" + timeInterval->Text +
-			"', Количество='" + tbQuantity->Text +
-			"', Тип='" + cbTransportType->Text +
-			"' where Маршрут='" + titleWay + "'";
-	}
-	else {
-		command->CommandText =
-			"insert into Def (Маршрут, Время_старт, Время_конец, Интервал, Количество, Тип) values ('" +
-			titleWay + "','" + timeStart->Text + "','" +
-			timeEnd->Text + "','" + timeInterval->Text + "'," +
-			tbQuantity->Text + ",'" + cbTransportType->Text + "')";
-	}
-	command->ExecuteNonQuery();
-	qrCity->Close();
-	System::Data::OleDb::OleDbConnection ^qrWay = gcnew System::Data::OleDb::OleDbConnection();
-	qrWay->ConnectionString = 
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CityName + "Ways.mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrWay->Open();
-	command->Connection = qrWay;
-	if (exists) {
-		command->CommandText = "drop table " + titleWay;
-		command->ExecuteNonQuery();
-	}
-	command->CommandText =
-		"create table " + titleWay + " (Код counter primary key, " +
-		"x integer, y integer, type integer, Название char (255))";
-	command->ExecuteNonQuery();
-	/*FileStream^ fs = gcnew FileStream("data.bin", FileMode::Create);
-	BinaryWriter^ w = gcnew BinaryWriter(fs);
-	String ^s = "Ура!";
-	w->Write(s);
-	fs->Close();*/
-	for (int i = 0; i < tableWay->RowCount; i++) {
-		command->CommandText = 
-			"insert into " + titleWay + " (x, y, type, Название) values (" +
-			tableWay->Rows[i]->Cells[0]->Value->ToString() + "," + 
-			tableWay->Rows[i]->Cells[1]->Value->ToString() + "," +
-			tableWay->Rows[i]->Cells[2]->Value->ToString() + ",'" +
-			tableWay->Rows[i]->Cells[3]->Value->ToString() + "')";
-		
-		command->ExecuteNonQuery();
-	}
-	qrWay->Close();
-	if (exists) {
+		File::Delete("Resources\\" + CitiesName + "\\" + CityName + "\\" + titleWay + ".tts");
 		MessageBox::Show("Маршрут " + titleWay + " был обновлен!");
 	}
 	else {
+		arrCity->Resize(arrCity, arrCity->Length + 1);
+		arrCity[arrCity->Length - 1] = city;
 		MessageBox::Show("Маршрут " + titleWay + " был создан!");
 	}
+	fileCity->Close();
+	fileCity = File::Open("Resources\\" + CitiesName + "\\" + CityName + ".tts", FileMode::Create);
+	BinaryWriter ^writerCity = gcnew BinaryWriter(fileCity);
+	for (int i = 0; i < arrCity->Length; i++) {
+		writerCity->Write(arrCity[i]->titleWay);
+		writerCity->Write(arrCity[i]->timeStart);
+		writerCity->Write(arrCity[i]->timeEnd);
+		writerCity->Write(arrCity[i]->timeInterval);
+		writerCity->Write(arrCity[i]->quantity);
+		writerCity->Write(arrCity[i]->transportType);
+	}
+	writerCity->Close();
+	fileCity->Close();
+	FileStream ^fileWay = gcnew FileStream("Resources\\" + CitiesName + "\\" + CityName + "\\" + titleWay + ".tts", FileMode::Create);
+	BinaryWriter ^writerWay = gcnew BinaryWriter(fileWay);
+	for (int i = 0; i < arrWay->Length; i++) {
+		writerWay->Write(arrWay[i]->x);
+		writerWay->Write(arrWay[i]->y);
+		writerWay->Write(arrWay[i]->type);
+		writerWay->Write(arrWay[i]->titleStop);
+	}
+	writerWay->Close();
+	fileWay->Close();
 }
 
 System::Void MainForm::DeleteCity(String ^titleCity)
@@ -305,39 +316,43 @@ System::Void MainForm::DeleteCity(String ^titleCity)
 		MessageBox::Show("Некорректное название города!");
 		return;
 	}
-	System::Data::OleDb::OleDbConnection ^qrCities = gcnew System::Data::OleDb::OleDbConnection();
-	qrCities->ConnectionString =
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CitiesName + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCities->Open();
-	System::Data::OleDb::OleDbCommand^ command = gcnew System::Data::OleDb::OleDbCommand();
-	command->CommandText = "select Город from Города";
-	command->Connection = qrCities;
-	System::Data::OleDb::OleDbDataReader^ CitiesRead = command->ExecuteReader();
-	bool exists = false;
-	while (CitiesRead->Read()) {
-		if ((String ^)CitiesRead["Город"] == titleCity) {
-			exists = true;
-			break;
-		}
-	}
-	CitiesRead->Close();
+	bool exists = File::Exists("Resources\\" + CitiesName + "\\" + titleCity + ".tts");
 	if (exists) {
-		command->CommandText = "delete from Города where Город = '" + titleCity + "'";
-		command->ExecuteNonQuery();
-		File::Delete("Resources\\" + titleCity + ".mdb");
-		File::Delete("Resources\\" + titleCity + "Ways.mdb");
-		if (titleCity == CityName) {
-			CityName = "";
-			cbWays->Items->Clear();
+		FileStream ^fileCities = gcnew FileStream("Resources\\" + CitiesName + ".tts", FileMode::Open);
+		array<Cities ^> ^arrCities = gcnew array<Cities ^>(0);
+		BinaryReader ^readerCities = gcnew BinaryReader(fileCities);
+		for (int i = 0; readerCities->BaseStream->Position < readerCities->BaseStream->Length; i++) {
+			arrCities->Resize(arrCities, arrCities->Length + 1);
+			arrCities[i] = gcnew Cities();
+			arrCities[i]->titleCity = readerCities->ReadString();
+			arrCities[i]->x1 = readerCities->ReadInt32();
+			arrCities[i]->y1 = readerCities->ReadInt32();
+			arrCities[i]->x2 = readerCities->ReadInt32();
+			arrCities[i]->y2 = readerCities->ReadInt32();
 		}
+		readerCities->Close();
+		fileCities->Close();
+		fileCities = File::Open("Resources\\" + CitiesName + ".tts", FileMode::Create);
+		BinaryWriter ^writerCities = gcnew BinaryWriter(fileCities);
+		for (int i = 0; i < arrCities->Length; i++) {
+			if (arrCities[i]->titleCity != titleCity) {
+				writerCities->Write(arrCities[i]->titleCity);
+				writerCities->Write(arrCities[i]->x1);
+				writerCities->Write(arrCities[i]->y1);
+				writerCities->Write(arrCities[i]->x2);
+				writerCities->Write(arrCities[i]->y2);
+			}
+		}
+		writerCities->Close();
+		fileCities->Close();
+		File::Delete("Resources\\" + CitiesName + "\\" + titleCity + ".tts");
+		Directory::Delete("Resources\\" + CitiesName + "\\" + titleCity + "\\", true);
 		MessageBox::Show("Город " + titleCity + " был удален!");
 	}
 	else {
 		MessageBox::Show("Город " + titleCity + " не был найден!");
 	}
-	qrCities->Close();
+	LoadCities(CitiesName);
 }
 
 System::Void MainForm::DeleteWay(String ^titleWay)
@@ -350,43 +365,43 @@ System::Void MainForm::DeleteWay(String ^titleWay)
 		MessageBox::Show("Некорректное название маршрута!");
 		return;
 	}
-	System::Data::OleDb::OleDbConnection ^qrCity = gcnew System::Data::OleDb::OleDbConnection();
-	qrCity->ConnectionString =
-		"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-		CityName + ".mdb;" +
-		"Mode=ReadWrite;Persist Security Info=False";
-	qrCity->Open();
-	System::Data::OleDb::OleDbCommand^ command = gcnew System::Data::OleDb::OleDbCommand();
-	command->CommandText = "select Маршрут from Def";
-	command->Connection = qrCity;
-	System::Data::OleDb::OleDbDataReader^ CityRead = command->ExecuteReader();
-	bool exists = false;
-	while (CityRead->Read()) {
-		if ((String ^)CityRead["Маршрут"] == titleWay) {
-			exists = true;
-			break;
-		}
-	}
-	CityRead->Close();
+	bool exists = File::Exists("Resources\\" + CitiesName + "\\" + CityName + "\\" + titleWay + ".tts");
 	if (exists) {
-		command->CommandText = "delete from Def where Маршрут = '" + titleWay + "'";
-		command->ExecuteNonQuery();
-		System::Data::OleDb::OleDbConnection ^qrWay = gcnew System::Data::OleDb::OleDbConnection();
-		qrWay->ConnectionString =
-			"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=Resources/" +
-			CityName + "Ways.mdb;" +
-			"Mode=ReadWrite;Persist Security Info=False";
-		qrWay->Open();
-		command->Connection = qrWay;
-		command->CommandText = "drop table " + titleWay;
-		command->ExecuteNonQuery();
-		qrWay->Close();
+		array<City ^> ^arrCity = gcnew array<City ^>(0);
+		FileStream ^fileCity = gcnew FileStream("Resources\\" + CitiesName + "\\" + CityName + ".tts", FileMode::Open);
+		BinaryReader ^readerCity = gcnew BinaryReader(fileCity);
+		for (int i = 0; readerCity->BaseStream->Position < readerCity->BaseStream->Length; i++) {
+			arrCity->Resize(arrCity, arrCity->Length + 1);
+			arrCity[i] = gcnew City();
+			arrCity[i]->titleWay = readerCity->ReadString();
+			arrCity[i]->timeStart = readerCity->ReadString();
+			arrCity[i]->timeEnd = readerCity->ReadString();
+			arrCity[i]->timeInterval = readerCity->ReadString();
+			arrCity[i]->quantity = readerCity->ReadInt32();
+			arrCity[i]->transportType = readerCity->ReadString();
+		}
+		readerCity->Close();
+		fileCity->Close();
+		fileCity = File::Open("Resources\\" + CitiesName + "\\" + CityName + ".tts", FileMode::Create);
+		BinaryWriter ^writerCity = gcnew BinaryWriter(fileCity);
+		for (int i = 0; i < arrCity->Length; i++) {
+			if (arrCity[i]->titleWay != titleWay) {
+				writerCity->Write(arrCity[i]->titleWay);
+				writerCity->Write(arrCity[i]->timeStart);
+				writerCity->Write(arrCity[i]->timeEnd);
+				writerCity->Write(arrCity[i]->timeInterval);
+				writerCity->Write(arrCity[i]->quantity);
+				writerCity->Write(arrCity[i]->transportType);
+			}
+		}
+		writerCity->Close();
+		fileCity->Close();
+		File::Delete("Resources\\" + CitiesName + "\\" + CityName + "\\" + titleWay + ".tts");
 		MessageBox::Show("Маршрут " + titleWay + " был удален!");
 	}
 	else {
 		MessageBox::Show("Маршрут " + titleWay + " не был найден!");
 	}
-	qrCity->Close();
 }
 
 System::Void MainForm::MainForm_Load(System::Object ^sender, System::EventArgs ^e)
