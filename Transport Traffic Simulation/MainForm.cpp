@@ -155,10 +155,7 @@ System::Void MainForm::LoadWay(String ^titleWay)
 	}
 	readerWay->Close();
 	fileWay->Close();
-	if (way != nullptr) {
-		delete way;
-	}
-	way = gcnew Way(Map, tableWay);
+	way->Draw();
 }
 
 System::Void MainForm::SaveCity(String ^titleCity)
@@ -413,6 +410,7 @@ System::Void MainForm::MainForm_Load(System::Object ^sender, System::EventArgs ^
 	OpenStreetMapOverlay ^osmOverlay = gcnew OpenStreetMapOverlay;
 	Map->Overlays->Add(osmOverlay);
 	Map->Refresh();
+	way = gcnew Way(Map, tableWay);
 }
 
 System::Void MainForm::Map_MouseClick(System::Object ^sender, System::Windows::Forms::MouseEventArgs ^e)
@@ -477,6 +475,7 @@ System::Void MainForm::tableWay_SelectionChanged(System::Object^  sender, System
 		tbY->Text = tableWay->CurrentRow->Cells[1]->Value->ToString();
 		cbPointType->SelectedIndex = (int)tableWay->CurrentRow->Cells[2]->Value;
 		tbTitleStop->Text = tableWay->CurrentRow->Cells[3]->Value->ToString();
+		way->Draw();
 	}
 }
 
@@ -495,6 +494,7 @@ System::Void MainForm::btnTableAdd_Click(System::Object ^ sender, System::EventA
 	tableWay->Rows[tableWay->Rows->Count - 1]->Cells[1]->Value = tbY->Text;
 	tableWay->Rows[tableWay->Rows->Count - 1]->Cells[2]->Value = cbPointType->SelectedIndex;
 	tableWay->Rows[tableWay->Rows->Count - 1]->Cells[3]->Value = tbTitleStop->Text;
+	way->Draw();
 }
 
 System::Void MainForm::btnTableInsert_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -517,6 +517,7 @@ System::Void MainForm::btnTableInsert_Click(System::Object ^ sender, System::Eve
 	else {
 		btnTableAdd->PerformClick();
 	}
+	way->Draw();
 }
 
 System::Void MainForm::btnTableEdit_Click(System::Object ^ sender, System::EventArgs ^ e)
@@ -533,18 +534,21 @@ System::Void MainForm::btnTableEdit_Click(System::Object ^ sender, System::Event
 	tableWay->Rows[tableWay->CurrentRow->Index]->Cells[1]->Value = tbY->Text;
 	tableWay->Rows[tableWay->CurrentRow->Index]->Cells[2]->Value = cbPointType->SelectedIndex;
 	tableWay->Rows[tableWay->CurrentRow->Index]->Cells[3]->Value = tbTitleStop->Text;
+	way->Draw();
 }
 
 System::Void MainForm::btnTableDelete_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	if (tableWay->CurrentRow != nullptr) {
 		tableWay->Rows->Remove(tableWay->CurrentRow);
+		way->Draw();
 	}
 }
 
 System::Void MainForm::btnTableClear_Click(System::Object ^ sender, System::EventArgs ^ e)
 {
 	tableWay->Rows->Clear();
+	way->Draw();
 }
 
 System::Void MainForm::btnTest_Click(System::Object ^ sender, System::EventArgs ^ e)

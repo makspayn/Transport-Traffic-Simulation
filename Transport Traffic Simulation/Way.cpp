@@ -4,65 +4,16 @@ Way::Way(ThinkGeo::MapSuite::DesktopEdition::WinformsMap ^map, System::Windows::
 {
 	Map = map;
 	tableWay = table;
-	TimerDraw = gcnew System::Windows::Forms::Timer();
-	TimerDraw->Interval = 10;
-	TimerDraw->Tick += gcnew System::EventHandler(this, &Way::Draw);
-	TimerDraw->Enabled = true;
-	drawThread = gcnew Thread(gcnew ThreadStart(this, &Way::RunDraw));
-	drawThread->Start();
 }
 
 Way::~Way()
 {
-	drawThread->Abort();
-	delete drawThread;
 	if (calcThread != nullptr) {
 		calcThread->Abort();
 		delete calcThread;
 	}
 	if (calculatedWay != nullptr) {
 		delete calculatedWay;
-	}
-	if (graphWay != nullptr) {
-		delete graphWay;
-	}
-	delete TimerDraw;
-}
-
-System::Void Way::RunDraw()
-{
-	while (true) {
-		try {
-			if (!tableWay->Rows->Count || (currentExtent == nullptr)) {
-				continue;
-			}
-			if (graphWay != nullptr) {
-				delete graphWay;
-			}
-			graphWay = Map->CreateGraphics();
-			for (int i = 0; i < tableWay->Rows->Count; i++) {
-				x1 = Convert::ToInt32(tableWay->Rows[i]->Cells[0]->Value->ToString());
-				y1 = Convert::ToInt32(tableWay->Rows[i]->Cells[1]->Value->ToString());
-				p1 = ExtentHelper::ToScreenCoordinate(currentExtent, x1, y1, Map->Width, Map->Height);
-				if ((int)tableWay->Rows[i]->Cells[2]->Value == 2) {
-					graphWay->FillEllipse(gcnew SolidBrush(Color::BlueViolet), p1.X - 6, p1.Y - 6, 12.0, 12.0);
-				}
-				if (i != tableWay->Rows->Count - 1) {
-					x2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[0]->Value->ToString());
-					y2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[1]->Value->ToString());
-					p2 = ExtentHelper::ToScreenCoordinate(currentExtent, x2, y2, Map->Width, Map->Height);
-					graphWay->DrawLine(gcnew Pen(Brushes::BlueViolet, 4), p1.X, p1.Y, p2.X, p2.Y);
-				}
-			}
-			x1 = Convert::ToInt32(tableWay->CurrentRow->Cells[0]->Value->ToString());
-			y1 = Convert::ToInt32(tableWay->CurrentRow->Cells[1]->Value->ToString());
-			p1 = ExtentHelper::ToScreenCoordinate(currentExtent, x1, y1, Map->Width, Map->Height);
-			graphWay->FillEllipse(gcnew SolidBrush(Color::Red), p1.X - 6, p1.Y - 6, 12.0, 12.0);
-			Thread::Sleep(1000);
-		}
-		catch (Exception ^e) {
-			
-		}
 	}
 }
 
@@ -183,8 +134,14 @@ System::Void Way::RunCalc()
 				calculatedWay[calculatedWay->Length - 1] = gcnew CalcWay;
 				calculatedWay[calculatedWay->Length - 1]->x = tx;
 				calculatedWay[calculatedWay->Length - 1]->y = ty;
-				calculatedWay[calculatedWay->Length - 1]->numPict =
-					DefNumPict(calculatedWay[calculatedWay->Length - 1]->x, calculatedWay[calculatedWay->Length - 1]->y, tempx, tempy);
+				if ((calculatedWay[calculatedWay->Length - 1]->x == calculatedWay[calculatedWay->Length - 2]->x) && 
+					(calculatedWay[calculatedWay->Length - 1]->y == calculatedWay[calculatedWay->Length - 2]->y)) {
+					calculatedWay[calculatedWay->Length - 1]->numPict = calculatedWay[calculatedWay->Length - 2]->numPict;
+				}
+				else {
+					calculatedWay[calculatedWay->Length - 1]->numPict =
+						DefNumPict(calculatedWay[calculatedWay->Length - 1]->x, calculatedWay[calculatedWay->Length - 1]->y, tempx, tempy);
+				}
 				calculatedWay[calculatedWay->Length - 1]->nextStop = stop;
 				continue;
 			}
@@ -209,8 +166,14 @@ System::Void Way::RunCalc()
 			calculatedWay[calculatedWay->Length - 1] = gcnew CalcWay;
 			calculatedWay[calculatedWay->Length - 1]->x = tempx;
 			calculatedWay[calculatedWay->Length - 1]->y = tempy;
-			calculatedWay[calculatedWay->Length - 1]->numPict =
-				DefNumPict(calculatedWay[calculatedWay->Length - 1]->x, calculatedWay[calculatedWay->Length - 1]->y, tempx, tempy);
+			if ((calculatedWay[calculatedWay->Length - 1]->x == calculatedWay[calculatedWay->Length - 2]->x) &&
+				(calculatedWay[calculatedWay->Length - 1]->y == calculatedWay[calculatedWay->Length - 2]->y)) {
+				calculatedWay[calculatedWay->Length - 1]->numPict = calculatedWay[calculatedWay->Length - 2]->numPict;
+			}
+			else {
+				calculatedWay[calculatedWay->Length - 1]->numPict =
+					DefNumPict(calculatedWay[calculatedWay->Length - 1]->x, calculatedWay[calculatedWay->Length - 1]->y, tempx, tempy);
+			}
 			calculatedWay[calculatedWay->Length - 1]->nextStop = stop;
 		}
 		if (i == tableWay->Rows->Count) {
@@ -233,11 +196,6 @@ System::Void Way::RunCalc()
 	}
 }
 
-System::Void Way::Draw(System::Object ^sender, System::EventArgs ^e)
-{
-	currentExtent = Map->CurrentExtent;
-}
-
 array<CalcWay ^> ^Way::GetCalculatedWay(int t)
 {
 	v = 0;
@@ -254,4 +212,54 @@ array<CalcWay ^> ^Way::GetCalculatedWay(int t)
 	calcThread->Join();
 	delete calcThread;
 	return calculatedWay;
+}
+
+System::Void Way::Draw()
+{
+	if (!tableWay->Rows->Count) {
+		if (Map->Overlays->Count > 1) {
+			Map->Overlays->RemoveAt(1);
+			Map->Refresh();
+			return;
+		}
+	}
+	InMemoryFeatureLayer ^inMemoryFeatureLayer = gcnew InMemoryFeatureLayer();
+	inMemoryFeatureLayer->ZoomLevelSet->ZoomLevel01->DefaultPointStyle = PointStyles::CreateSimpleCircleStyle(GeoColor::FromArgb(200, GeoColors::BlueViolet), 12.0);
+	inMemoryFeatureLayer->ZoomLevelSet->ZoomLevel01->DefaultLineStyle = LineStyles::CreateSimpleLineStyle(GeoColor::FromArgb(200, GeoColors::BlueViolet), 4.0, true);
+	inMemoryFeatureLayer->ZoomLevelSet->ZoomLevel01->ApplyUntilZoomLevel = ApplyUntilZoomLevel::Level20;
+	for (int i = 0; i < tableWay->Rows->Count; i++) {
+		x1 = Convert::ToInt32(tableWay->Rows[i]->Cells[0]->Value->ToString());
+		y1 = Convert::ToInt32(tableWay->Rows[i]->Cells[1]->Value->ToString());
+		ps1 = gcnew PointShape(x1, y1);
+		v1.X = x1;
+		v1.Y = y1;
+		if ((int)tableWay->Rows[i]->Cells[2]->Value == 2) {
+			inMemoryFeatureLayer->InternalFeatures->Add(gcnew Feature(ps1));
+		}
+		if (i != tableWay->Rows->Count - 1) {
+			x2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[0]->Value->ToString());
+			y2 = Convert::ToInt32(tableWay->Rows[i + 1]->Cells[1]->Value->ToString());
+			v2.X = x2;
+			v2.Y = y2;
+			ls = gcnew LineShape();
+			ls->Vertices->Add(v1);
+			ls->Vertices->Add(v2);
+			inMemoryFeatureLayer->InternalFeatures->Add(gcnew Feature(ls));
+		}
+	}
+	InMemoryFeatureLayer ^inMemoryFeatureLayer2 = gcnew InMemoryFeatureLayer();
+	inMemoryFeatureLayer2->ZoomLevelSet->ZoomLevel01->DefaultPointStyle = PointStyles::CreateSimpleCircleStyle(GeoColor::FromArgb(200, GeoColors::Red), 12.0);
+	inMemoryFeatureLayer2->ZoomLevelSet->ZoomLevel01->ApplyUntilZoomLevel = ApplyUntilZoomLevel::Level20;
+	x2 = Convert::ToInt32(tableWay->CurrentRow->Cells[0]->Value->ToString());
+	y2 = Convert::ToInt32(tableWay->CurrentRow->Cells[1]->Value->ToString());
+	ps2 = gcnew PointShape(x2, y2);
+	inMemoryFeatureLayer2->InternalFeatures->Add(gcnew Feature(ps2));
+	if (Map->Overlays->Count > 1) {
+		Map->Overlays->RemoveAt(1);
+	}
+	LayerOverlay ^dynamicOverlay = gcnew LayerOverlay();
+	dynamicOverlay->Layers->Add(inMemoryFeatureLayer);
+	dynamicOverlay->Layers->Add(inMemoryFeatureLayer2);
+	Map->Overlays->Add(dynamicOverlay);
+	Map->Refresh();
 }
