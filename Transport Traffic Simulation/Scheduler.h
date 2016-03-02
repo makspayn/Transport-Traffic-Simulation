@@ -20,12 +20,12 @@ private:
 	bool launched;
 	bool pause;
 	array<Transport ^> ^transports;
-	System::Void RunSchedule();
+	Void RunSchedule();
 public:
 	DateTimePicker ^globalTime;
-	System::Void DeselectInfo();
-	System::Void Start();
-	System::Void Pause();
-	System::Void Return();
-	System::Void Stop();
+	Void DeselectInfo();
+	Void Start();
+	Void Pause();
+	Void Return();
+	Void Stop();
 };

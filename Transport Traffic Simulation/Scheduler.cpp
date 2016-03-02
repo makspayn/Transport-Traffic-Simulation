@@ -29,7 +29,7 @@ Scheduler::~Scheduler()
 	}
 }
 
-System::Void Scheduler::RunSchedule()
+Void Scheduler::RunSchedule()
 {
 	while (true) {
 		try {
@@ -72,7 +72,7 @@ System::Void Scheduler::RunSchedule()
 	}
 }
 
-System::Void Scheduler::DeselectInfo()
+Void Scheduler::DeselectInfo()
 {
 	for (int i = 0; i < quantity; i++) {
 		if (transports != nullptr) {
@@ -84,16 +84,17 @@ System::Void Scheduler::DeselectInfo()
 	frMain->lblNextStop->Text = "--";
 }
 
-System::Void Scheduler::Start()
+Void Scheduler::Start()
 {
+	array<CalcWay ^> ^calculatedWay = frMain->way->GetCalculatedWay(type);
 	for (int i = 0; i < quantity; i++) {
-		transports[i] = gcnew Transport(frMain, frMain->way->GetCalculatedWay(type), type, title);
+		transports[i] = gcnew Transport(frMain, calculatedWay, type, title);
 	}
 	scheduleThread = gcnew Thread(gcnew ThreadStart(this, &Scheduler::RunSchedule));
 	scheduleThread->Start();
 }
 
-System::Void Scheduler::Pause()
+Void Scheduler::Pause()
 {
 	scheduleThread->Suspend();
 	for (int i = 0; i < quantity; i++) {
@@ -102,7 +103,7 @@ System::Void Scheduler::Pause()
 	pause = true;
 }
 
-System::Void Scheduler::Return()
+Void Scheduler::Return()
 {
 	for (int i = 0; i < quantity; i++) {
 		if (transports[i]->GetTime() != DateTime::Parse("00:00:00")) {
@@ -113,7 +114,7 @@ System::Void Scheduler::Return()
 	pause = false;
 }
 
-System::Void Scheduler::Stop()
+Void Scheduler::Stop()
 {
 	if (pause) {
 		scheduleThread->Resume();

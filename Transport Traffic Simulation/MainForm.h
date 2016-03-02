@@ -1,17 +1,6 @@
 #pragma once
 
-#include "Way.h"
 #include "Transport Traffic Simulation.h"
-
-using namespace System;
-using namespace System::ComponentModel;
-using namespace System::Collections;
-using namespace System::Windows::Forms;
-using namespace System::Data;
-using namespace System::Drawing;
-using namespace System::IO;
-using namespace ThinkGeo::MapSuite::Core;
-using namespace ThinkGeo::MapSuite::DesktopEdition;
 
 public ref class MainForm : public System::Windows::Forms::Form
 {
@@ -73,13 +62,13 @@ private:
 	String^ CitiesName;
 	String^ CityName;
 	PointShape ^pointShape;
-	System::Void LoadCities(String ^);
-	System::Void LoadCity(String ^);
-	System::Void LoadWay(String ^);
-	System::Void SaveCity(String ^);
-	System::Void SaveWay(String ^);
-	System::Void DeleteCity(String ^);
-	System::Void DeleteWay(String ^);
+	Void LoadCities(String ^);
+	Void LoadCity(String ^);
+	Void LoadWay(String ^);
+	Void SaveCity(String ^);
+	Void SaveWay(String ^);
+	Void DeleteCity(String ^);
+	Void DeleteWay(String ^);
 	System::Void MainForm_Load(System::Object^  sender, System::EventArgs^  e);
 	System::Void Map_MouseClick(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e);
 	System::Void btnLoadCity_Click(System::Object^  sender, System::EventArgs^  e);

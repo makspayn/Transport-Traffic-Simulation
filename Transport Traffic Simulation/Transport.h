@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Way.h"
 #include "Transport Traffic Simulation.h"
 
 public ref class Transport
@@ -13,24 +12,24 @@ private:
 	MainForm ^frMain;
 	RectangleShape ^currentExtent;
 	array<CalcWay ^> ^calculatedWay;
-	System::Windows::Forms::PictureBox ^Pict;
-	System::Windows::Forms::Label ^lblNumber;
+	PictureBox ^Pict;
+	Label ^lblNumber;
 	System::Windows::Forms::Timer ^TimerDraw;
 	String ^catalog;
 	Thread ^drawThread;
 	DateTime timeStart;
 	int index;
 	int x, y;
-	ThinkGeo::MapSuite::Core::ScreenPointF p;
+	ScreenPointF p;
 	bool go, willgo, showinfo;
 	bool pause;
-	System::Void RunDraw();
-	System::Void Draw(System::Object ^sender, System::EventArgs ^e);
-	System::Void PictClick(System::Object^ sender, System::EventArgs^ e);
+	Void RunDraw();
+	Void Draw(System::Object ^sender, System::EventArgs ^e);
+	Void PictClick(System::Object^ sender, System::EventArgs^ e);
 public:
-	System::Void Go();
-	System::Void Pause(bool);
+	Void Go();
+	Void Pause(bool);
 	DateTime GetTime();
-	System::Void SetWillgo(bool);
-	System::Void SetShowInfo(bool);
+	Void SetWillgo(bool);
+	Void SetShowInfo(bool);
 };

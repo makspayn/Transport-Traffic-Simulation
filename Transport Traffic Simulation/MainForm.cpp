@@ -31,7 +31,7 @@ MainForm::~MainForm()
 	delete way;
 }
 
-System::Void MainForm::LoadCities(String ^titleCities)
+Void MainForm::LoadCities(String ^titleCities)
 {
 	if (titleCities == "") {
 		MessageBox::Show("Некорректное название базы данных городов!");
@@ -61,7 +61,7 @@ System::Void MainForm::LoadCities(String ^titleCities)
 	CitiesName = titleCities;
 }
 
-System::Void MainForm::LoadCity(String ^titleCity)
+Void MainForm::LoadCity(String ^titleCity)
 {
 	if (titleCity == "") {
 		MessageBox::Show("Некорректное название города!");
@@ -113,7 +113,7 @@ System::Void MainForm::LoadCity(String ^titleCity)
 	}
 }
 
-System::Void MainForm::LoadWay(String ^titleWay)
+Void MainForm::LoadWay(String ^titleWay)
 {
 	if (titleWay == "") {
 		MessageBox::Show("Некорректное название маршрута!");
@@ -158,7 +158,7 @@ System::Void MainForm::LoadWay(String ^titleWay)
 	way->Draw();
 }
 
-System::Void MainForm::SaveCity(String ^titleCity)
+Void MainForm::SaveCity(String ^titleCity)
 {
 	if (titleCity == "") {
 		MessageBox::Show("Некорректное название города!");
@@ -218,7 +218,7 @@ System::Void MainForm::SaveCity(String ^titleCity)
 	LoadCities(CitiesName);
 }
 
-System::Void MainForm::SaveWay(String ^titleWay)
+Void MainForm::SaveWay(String ^titleWay)
 {
 	if (CityName == "") {
 		MessageBox::Show("Сначала загрузите город!");
@@ -307,7 +307,7 @@ System::Void MainForm::SaveWay(String ^titleWay)
 	fileWay->Close();
 }
 
-System::Void MainForm::DeleteCity(String ^titleCity)
+Void MainForm::DeleteCity(String ^titleCity)
 {
 	if (titleCity == "") {
 		MessageBox::Show("Некорректное название города!");
@@ -352,7 +352,7 @@ System::Void MainForm::DeleteCity(String ^titleCity)
 	LoadCities(CitiesName);
 }
 
-System::Void MainForm::DeleteWay(String ^titleWay)
+Void MainForm::DeleteWay(String ^titleWay)
 {
 	if (CityName == "") {
 		MessageBox::Show("Сначала загрузите город!");

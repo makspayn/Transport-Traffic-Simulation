@@ -91,7 +91,7 @@ int Way::DefNumPict(double x, double y, double tempx, double tempy)
 	}
 }
 
-System::Void Way::RunCalc()
+Void Way::RunCalc()
 {
 	double tempx = Convert::ToInt32(tableWay->Rows[1]->Cells[0]->Value);
 	double tempy = Convert::ToInt32(tableWay->Rows[1]->Cells[1]->Value);
@@ -214,7 +214,7 @@ array<CalcWay ^> ^Way::GetCalculatedWay(int t)
 	return calculatedWay;
 }
 
-System::Void Way::Draw()
+Void Way::Draw()
 {
 	if (!tableWay->Rows->Count) {
 		if (Map->Overlays->Count > 1) {

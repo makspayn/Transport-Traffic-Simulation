@@ -50,7 +50,7 @@ Transport::~Transport()
 	delete TimerDraw;
 }
 
-System::Void Transport::RunDraw()
+Void Transport::RunDraw()
 {
 	while (true) {
 		try {
@@ -89,23 +89,23 @@ System::Void Transport::RunDraw()
 	}
 }
 
-System::Void Transport::Draw(System::Object ^sender, System::EventArgs ^e)
+Void Transport::Draw(System::Object ^sender, System::EventArgs ^e)
 {
 	currentExtent = frMain->Map->CurrentExtent;
 }
 
-System::Void Transport::PictClick(System::Object ^ sender, System::EventArgs ^ e)
+Void Transport::PictClick(System::Object ^ sender, System::EventArgs ^ e)
 {
 	frMain->scheduler->DeselectInfo();
 	showinfo = true;
 }
 
-System::Void Transport::SetWillgo(bool wg)
+Void Transport::SetWillgo(bool wg)
 {
 	willgo = wg;
 }
 
-System::Void Transport::SetShowInfo(bool si)
+Void Transport::SetShowInfo(bool si)
 {
 	showinfo = si;
 }
@@ -117,7 +117,7 @@ DateTime Transport::GetTime()
 	return dt;
 }
 
-System::Void Transport::Go()
+Void Transport::Go()
 {
 	if (!go) {
 		timeStart = frMain->scheduler->globalTime->Value;
@@ -128,7 +128,7 @@ System::Void Transport::Go()
 	go = true;
 }
 
-System::Void Transport::Pause(bool p)
+Void Transport::Pause(bool p)
 {
 	pause = p;
 }
